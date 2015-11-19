@@ -1,5 +1,5 @@
 # gff2fasta
-#### Author: Ian Hu, Department of Biochemistry, University of Cambridge ####
+#### Author: Ian Hu, Department of Biochemistry, University of Cambridge #### 
 # This program produces a fasta file of gff3 features and sequences when supplied with genomic file, 
 # gff file to extract features from, requested features, and a output name,
 # e.g. you want to extract all the CDS or intron sequences from a gff and a separate fasta files.
