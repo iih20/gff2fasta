@@ -9,8 +9,14 @@
 # gff2fasta would try to load the whole genome to memory at once, so if your genome is big, turn off chrome.
 # WARNING: the output will not be sorted as this will take too much memory and time.
 #
-# NOTE: if there're any ambiguous nucleotides in the sequence, after the reverse compliment function
-# (if they're antisense genes) they will show as "N". Deal with it.
-
+# NOTE1: in version 2 (this version) an optional argument is supplied for collecting up- and downstream 
+# sequences. Add [-ud] and [up- downstream nubmer of nucleotides] after the fourth arguement.
+#
+# NOTE2: if there's any ambiguous nucleotides in the sequence, after the reverse compliment function
+# they will show as "N". Deal with it.
+#
+# The author claims no copyright for this. however if you wish to buy the author a beer or have any problems, 
+# contact the author at iih20@cam.ac.uk
+##############################################################################################################
 USAGE: ./gff2fasta fasta_location gff_location features separated by comma[,] outfile_name 
 ex: ./gff2fasta path_to_genome.fasta path_to_mRNA.gff CDS,exon output_features.fasta
