@@ -1,0 +1,96 @@
+#### Author: Ian Hu, Department of Biochemistry, University of Cambridge ####
+# This program produces a fasta file of gff3 features and sequences when supplied with genomic file, 
+# gff file to extract features from, requested features, and a output name,
+# e.g. you want to extract all the CDS or intron sequences from a gff and a separate fasta files.
+# The program uses only bash and ancient awk script, so presumably runs pretty fast,
+# but if you have an older version of awk this will not work as the size of string is limited.
+# Output sequence name rule is >scaffoldname_start_end_feature
+# gff2fasta would try to load the whole genome to mem at once, so if your genome is big, turn off chrome.
+# WARNING: the output will not be sorted as this will take too much memory and time.
+#
+# NOTE: if there's any ambiguous nucleotides in the sequence, after the reverse compliment function
+# they will show as "N". Deal with it.
+errormessage=" USAGE: ./gff2fasta fasta_location gff_location features separated by comma[,] outfile_name \n ex: ./gff2fasta genome.fasta mRNA.gff CDS,exon features.fasta"
+
+if (("$#" != 4))
+then echo -e $errormessage
+exit
+fi
+
+echo "" > $4
+
+#passing the arguments to awk by the $* at the end of the script
+awk  '
+#### the reverse compliment function ####
+function RC(STRING,   tmp, tmpstore) {    
+	while ( length(STRING)>0 ) {
+		tmp = substr(STRING, length(STRING))
+		STRING = substr(STRING, 1, length(STRING)-1)
+		tmp = ( tmp=="A" ) ? "T" : ( tmp=="T" ) ? "A" : ( tmp=="C" ) ? "G" : ( tmp=="G" ) ? "C" : "N"
+		tmpstore = tmpstore tmp
+	}
+	return tmpstore
+}
+
+BEGIN {
+	error=" USAGE: ./gff2fasta fasta_location gff_location features separated by comma[,] outfile_name \n ex: ./gff2fasta genome.fasta mRNA.gff CDS,exon features.fasta"
+	delete ARGV[0]
+	RS=">"
+
+	#### checking input files ####
+	if (system("test -r " ARGV[1]) || system("test -r " ARGV[2])) {
+			print ARGV[item] " file error - either no file or no reading permission" 
+			print error
+			#"exit"
+			exit
+		}
+
+	#### read fasta ####
+	print " Reading genome..."
+	while ( (getline < ARGV[1] ) > 0) {
+		sequence_start = match($0, "\n[A-Z]+")
+		sequence= substr($0, sequence_start)
+		gsub("\n", "", sequence)
+		sequence = toupper(sequence)
+		scaffold_name = substr($0,1,sequence_start-1)
+		scaffold[scaffold_name] = sequence
+	} 			
+	delete ARGV[1]   #keep input field clean
+	
+	#### read features ####
+	split(ARGV[3], array, ",")
+	for (item in array)  features[array[item]]=array[item]
+	print " remembering features..."
+	delete ARGV[3]	#cleanup
+
+	RS= "\n"
+	FS= "\t"
+	OFS = "_"
+	print " parsing..."
+}
+
+####MAIN find sequence for each feature ####
+{	
+	if ($3 in features) {
+		if ($1 in scaffold) {
+			subsequence = ($5 > $4) ? substr(scaffold[$1], $4, $5-$4) : substr(scaffold[$1], $5, $4-$5)  ### determining sense or antisense
+			feature_sequence[$1"_"$4"_"$5"_"$3] = ($5 > $4) ? subsequence : RC(subsequence)  ### determining the sequence
+		}
+	}
+	next
+} 
+
+#### final output ####
+END {
+	OFS = "\n"
+	if (length(feature_sequence) > 1 ) {
+		for (item in feature_sequence) 
+		print ">" item, feature_sequence[item] > ARGV[4]
+		print " data output at " ARGV[4]
+	}
+	else {
+		print " No requested features found in the genomic sequence" 
+	}
+	
+}
+' $* 
