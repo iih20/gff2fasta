@@ -10,7 +10,7 @@
 # WARNING: the output will not be sorted as this will take too much memory and time.
 #
 # NOTE: if there're any ambiguous nucleotides in the sequence, after the reverse compliment function
-# they will show as "N". Deal with it.
+# (if they're antisense genes) they will show as "N". Deal with it.
 
 USAGE: ./gff2fasta fasta_location gff_location features separated by comma[,] outfile_name 
 ex: ./gff2fasta path_to_genome.fasta path_to_mRNA.gff CDS,exon output_features.fasta
